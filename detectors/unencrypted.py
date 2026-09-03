@@ -1,15 +1,6 @@
 from typing import Optional, Dict, Any
 
-UNENCRYPTED_PORTS = {
-    80: "HTTP",
-    8080: "HTTP-Alt",
-    21: "FTP",
-    23: "Telnet",
-    110: "POP3",
-    143: "IMAP",
-}
-
-HTTP_SIGNATURES = ["HTTP/1.", "GET ", "POST ", "HEAD ", "PUT ", "DELETE "]
+import config
 
 
 def check_unencrypted(parsed_pkt: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -20,15 +11,15 @@ def check_unencrypted(parsed_pkt: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     detected_protocol = None
     matched_port = None
 
-    if sport in UNENCRYPTED_PORTS:
-        detected_protocol = UNENCRYPTED_PORTS[sport]
+    if sport in config.UNENCRYPTED_PORTS:
+        detected_protocol = config.UNENCRYPTED_PORTS[sport]
         matched_port = sport
-    elif dport in UNENCRYPTED_PORTS:
-        detected_protocol = UNENCRYPTED_PORTS[dport]
+    elif dport in config.UNENCRYPTED_PORTS:
+        detected_protocol = config.UNENCRYPTED_PORTS[dport]
         matched_port = dport
 
     if not detected_protocol and payload:
-        if any(sig in payload for sig in HTTP_SIGNATURES):
+        if any(sig in payload for sig in config.HTTP_SIGNATURES):
             detected_protocol = "HTTP (Payload Detected)"
             matched_port = dport or sport
 
