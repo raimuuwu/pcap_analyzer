@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Union
 import scapy.all as scapy
+from typing import Optional, Callable
+import sys
 
 VALID_EXTENSIONS = {".pcap", ".pcapng"}
 
@@ -28,12 +30,19 @@ def read_pcap_file(file_path: Union[str, Path]) -> scapy.PacketList:
         raise ValueError(f"Error reading PCAP file: {e}")
 
 
-def live_capture(count: int = 0, iface: str = None) -> scapy.PacketList:
+def live_capture(callback: Callable, interface: Optional[str] = None, count: int = 0) -> None:
+
+    print(f"[*] Starting live capture on interface: {interface or 'Default'}...")
+    print("[*] Press Ctrl+C to stop capturing and view statistics.\n")
+
     try:
-        print(
-            f"Starting live capture on interface '{iface or 'default'}' (packet limit: {count})...")
-        packets = scapy.sniff(iface=iface, count=count)
-        return packets
+        scapy.sniff(
+            iface=interface,
+            prn=callback,
+            store=False,
+            count=count
+        )
+    except KeyboardInterrupt:
+        print("\n[*] Live capture stopped by user (Ctrl+C).")
     except Exception as e:
-        raise RuntimeError(
-            f"Failed to capture live traffic: {e}. Ensure you have Admin privileges / Npcap installed.")
+        print(f"\n[!] Error during live capture: {e}", file=sys.stderr)
